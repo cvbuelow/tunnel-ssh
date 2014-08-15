@@ -74,7 +74,9 @@ SSHTunnel.prototype.connect = function (callback) {
                 });
             });
         });
-        self.server.listen(localPort, callback);
+        self.server.listen(localPort, function() {
+            callback(self.server.address());
+        });
     });
 
     c.on('error', function (err) {
