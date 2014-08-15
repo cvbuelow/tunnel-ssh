@@ -1,5 +1,6 @@
 var Connection = require('ssh2');
 var net = require('net');
+var q = require('q');
 
 
 function SSHTunnel(config, callback) {
@@ -27,15 +28,17 @@ SSHTunnel.prototype.close = function (callback) {
     });
 };
 
-SSHTunnel.prototype.connect = function (callback) {
+SSHTunnel.prototype.connect = function () {
     var self = this,
         disabled = self._config.disabled,
+        remoteHost = self._config.remoteHost || '127.0.0.1',
         remotePort = self._config.remotePort,
-        localPort = self._config.localPort;
+        localPort = self._config.localPort,
+        defer = q.defer();
 
 
-    if(disabled){
-        return callback(null);
+    if (disabled) {
+        return q.reject();
     }
     var c = self.connection = new Connection();
 
@@ -50,7 +53,9 @@ SSHTunnel.prototype.connect = function (callback) {
 
             connection.on('data', addBuffer);
 
-            c.forwardOut('', 0, '127.0.0.1', remotePort, function (error, ssh) {
+            c.forwardOut('', 0, remoteHost, remotePort, function (error, ssh) {
+                if (error) defer.reject(error);
+
                 while (buffers.length) {
                     ssh.write(buffers.shift());
                 }
@@ -75,11 +80,12 @@ SSHTunnel.prototype.connect = function (callback) {
             });
         });
         self.server.listen(localPort, function() {
-            callback(self.server.address());
+            defer.resolve(self.server.address());
         });
     });
 
     c.on('error', function (err) {
+        defer.reject(err);
         self.log('ssh2::error:: ' + err);
     });
     c.on('end', function () {
@@ -90,6 +96,8 @@ SSHTunnel.prototype.connect = function (callback) {
     });
 
     c.connect(self._config.sshConfig);
+
+    return defer.promise;
 };
 
 module.exports = SSHTunnel;

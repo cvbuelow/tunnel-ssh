@@ -3,15 +3,15 @@
   "version": "0.0.4",
   "description": "Easy ssh tunneling",
   "main": "index.js",
-  "scripts": {
-  },
+  "scripts": {},
   "keywords": [
-        "tunnel",
-        "ssh"
+    "tunnel",
+    "ssh"
   ],
   "author": "christoph.hagenbrock@googlemail.com",
   "license": "ISC",
   "dependencies": {
+    "q": "^1.0.1",
     "ssh2": "^0.2.23"
   }
 }
