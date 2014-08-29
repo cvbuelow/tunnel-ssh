@@ -54,7 +54,7 @@ SSHTunnel.prototype.connect = function () {
             connection.on('data', addBuffer);
 
             c.forwardOut('', 0, remoteHost, remotePort, function (error, ssh) {
-                if (error) defer.reject(error);
+                if (error) throw error;
 
                 while (buffers.length) {
                     ssh.write(buffers.shift());
